@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kerstkaartjes – Brievenbussen</title>
+<style>
+  :root{
+    --green:#2C4A3B;
+    --green-dark:#1B2F26;
+    --red:#8B1E2B;
+    --cream:#FBF7F0;
+    --paper:#ffffff;
+    --line:#c9c2b4;
+    --ink:#26241f;
+    --muted:#7a7568;
+    --gold:#B08B3E;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:"Iowan Old Style","Georgia",serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .topbar{
+    position:sticky; top:0; z-index:20;
+    background:var(--green-dark);
+    color:#f2ede1;
+    padding:14px 18px;
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    border-bottom:3px solid var(--gold);
+  }
+  .topbar h1{
+    font-size:1.15rem; margin:0; font-weight:600; letter-spacing:.02em;
+    font-family:"Iowan Old Style","Georgia",serif;
+  }
+  .topbar .sub{font-size:.72rem; color:#cfc7b2; font-family:Arial,sans-serif;}
+  .spacer{flex:1;}
+  .btn{
+    font-family:Arial,sans-serif; font-size:.78rem; font-weight:600;
+    padding:8px 14px; border-radius:3px; border:1px solid transparent;
+    cursor:pointer; letter-spacing:.02em; transition:opacity .15s;
+  }
+  .btn:hover{opacity:.85;}
+  .btn-gold{background:var(--gold); color:#2b2210;}
+  .btn-outline{background:transparent; color:#f2ede1; border-color:#6b7a70;}
+  .btn-red{background:var(--red); color:#fff;}
+  input[type=file]{display:none;}
+  label.filebtn{
+    font-family:Arial,sans-serif; font-size:.78rem; font-weight:600;
+    padding:8px 14px; border-radius:3px; background:#3d5c4b; color:#f2ede1;
+    cursor:pointer; border:1px solid #547061;
+  }
+  label.filebtn:hover{background:#476856;}
+
+  .wrap{max-width:1400px; margin:0 auto; padding:18px;}
+
+  .banner{
+    font-family:Arial,sans-serif; font-size:.85rem;
+    background:#fff; border:1px solid var(--gold); border-left:5px solid var(--gold);
+    padding:12px 16px; margin-bottom:16px; border-radius:2px;
+    box-shadow:0 1px 3px rgba(0,0,0,.06);
+  }
+  .banner.err{border-color:var(--red); border-left-color:var(--red);}
+  .banner h3{margin:0 0 6px 0; font-size:.85rem; color:var(--green-dark);}
+  .banner ul{margin:4px 0 0 0; padding-left:18px; line-height:1.5;}
+  .banner .close{float:right; cursor:pointer; color:var(--muted); font-weight:bold;}
+
+  .review{
+    font-family:Arial,sans-serif; font-size:.82rem;
+    background:#fff8ee; border:1px solid #e0c28a; border-radius:3px;
+    padding:12px 16px; margin-bottom:16px;
+  }
+  .review h3{margin:0 0 8px 0; color:var(--red); font-size:.85rem;}
+  .review .row{display:flex; align-items:center; gap:8px; margin:6px 0; flex-wrap:wrap;}
+  .review select, .review input{
+    font-family:Arial,sans-serif; font-size:.8rem; padding:4px 6px;
+    border:1px solid var(--line); border-radius:2px;
+  }
+
+  .arealabel{
+    font-size:1.4rem; color:var(--red); margin:26px 0 4px 0;
+    border-bottom:2px solid var(--red); padding-bottom:4px;
+  }
+  .subarea{
+    display:inline-block; background:var(--green); color:#fff;
+    font-family:Arial,sans-serif; font-size:.82rem; font-weight:600;
+    padding:5px 12px; border-radius:2px; margin:14px 0 10px 0; letter-spacing:.03em;
+  }
+  .street-block{margin-bottom:16px;}
+  .street-title{
+    font-size:.95rem; color:var(--green-dark); margin:0 0 6px 2px;
+    font-family:Arial,sans-serif; font-weight:700;
+  }
+  .street-title .count{color:var(--muted); font-weight:400; font-size:.8rem;}
+  .grid{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(64px,1fr));
+    gap:5px; max-width:900px;
+  }
+  .box{
+    border:1px solid #b9b2a0; border-radius:2px; background:#fff;
+    text-align:center; padding:5px 2px; cursor:pointer; user-select:none;
+    transition:background .1s, color .1s;
+    font-family:Arial,sans-serif;
+  }
+  .box .num{font-size:.82rem; font-weight:700; color:var(--ink); line-height:1.1;}
+  .box .wijk{font-size:.62rem; color:var(--red); line-height:1.2;}
+  .box.checked{background:var(--green); border-color:var(--green-dark);}
+  .box.checked .num{color:#fff;}
+  .box.checked .wijk{color:#cfe3d6;}
+  .box.new{outline:2px dashed var(--gold);}
+
+  footer{
+    font-family:Arial,sans-serif; font-size:.72rem; color:var(--muted);
+    text-align:center; padding:24px 0 60px;
+  }
+
+  .log{
+    font-family:Arial,sans-serif; font-size:.78rem; background:#fff;
+    border:1px solid var(--line); border-radius:3px; padding:10px 14px; margin-bottom:16px;
+    max-height:220px; overflow:auto; display:none;
+  }
+  .log.open{display:block;}
+  .log div{padding:2px 0; border-bottom:1px dotted #e5e0d3;}
+  .log .stop{color:var(--red);}
+  .log .start{color:var(--green);}
+
+  @media print{
+    .topbar, .banner, .review, .log, footer{display:none !important;}
+    body{background:#fff;}
+    .wrap{max-width:none; padding:0 6mm;}
+    .arealabel{page-break-before:always; margin-top:0;}
+    .wrap > .arealabel:first-of-type{page-break-before:avoid;}
+    .subarea{page-break-before:always;}
+    .wrap > .subarea:first-of-type, .arealabel + .subarea{page-break-before:avoid;}
+    .street-block{break-inside:avoid;}
+    .box{border:1px solid #888 !important;}
+    .box.checked{background:#ddd !important;}
+    .box.checked .num, .box.checked .wijk{color:#000 !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>🎄 Kerstkaartjes – Brievenbussen</h1>
+  <span class="sub" id="statusline">bezig met laden…</span>
+  <div class="spacer"></div>
+  <label class="filebtn" for="pdfInput">Looplijst PDF inladen</label>
+  <input type="file" id="pdfInput" accept="application/pdf">
+  <button class="btn btn-outline" id="logBtn">Log</button>
+  <button class="btn btn-outline" id="resetBtn">Reset naar basislijst</button>
+  <button class="btn btn-gold" id="printBtn">Printen</button>
+</div>
+
+<div class="wrap">
+  <div id="banners"></div>
+  <div id="review" class="review" style="display:none;"></div>
+  <div id="log" class="log"></div>
+  <div id="content"></div>
+  <footer>Kerstkaartjes app · Charlotte Rekers route Oldenzaal · segmentnummer o.b.v. Looplijst Wijken</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+/* ============ EMBEDDED BASE DATA (vervangen bij build) ============ */
+const BASE_DATA = [["Oldenzaal Oost", "Centrum", "Tulpstraat", [["7", "249"], ["9", "249"], ["39", "249"], ["45", "249"], ["65", "249"], ["73", "249"], ["25", "249"], ["43", "249"], ["47", "249"]]], ["Oldenzaal Oost", "Centrum", "Nagelstraat", [["26", "244"], ["42", "244"], ["50", "244"], ["56", "244"], ["32", "244"], ["38", "244"]]], ["Oldenzaal Oost", "Centrum", "Noordwal", [["98", "249"], ["16", "249"], ["18", "249"], ["12", "249"]]], ["Oldenzaal Oost", "Centrum", "Deurningerstraat", [["34 01", "244"], ["34APP2", "244"], ["34 21", "244"], ["34 AP12", "244"], ["26B", "244"], ["17", "236"], ["16", "244"], ["34 AP11", "244"], ["19", "236"]]], ["Oldenzaal Oost", "Centrum", "Kortestraat", [["4", "236"]]], ["Oldenzaal Oost", "Centrum", "Steenstraat", [["37", "236"], ["39", "236"], ["41", "236"], ["47", "236"], ["31", "236"], ["29", "236"], ["35", "236"], ["49", "236"]]], ["Oldenzaal Oost", "Centrum", "Prins Hendrikstraat", [["79", "227"], ["39", "227"], ["43", "227"], ["15", "227"], ["57", "227"], ["71", "227"]]], ["Oldenzaal Oost", "Centrum", "Pastoriestraat", [["39", "227"], ["55", "227"], ["71", "227"], ["81", "227"], ["83", "227"], ["87", "227"], ["91", "227"], ["24", "236"], ["32", "236"], ["75", "227"], ["46", "226"], ["50", "226"]]], ["Oldenzaal Oost", "Centrum", "Beatrixstraat", [["163", "227"]]], ["Oldenzaal Oost", "Centrum", "Wilhelminastraat", [["34", "227"], ["36", "227"], ["40", "227"], ["44", "227"], ["50", "227"], ["56", "227"], ["60", "227"], ["64", "227"], ["68", "227"], ["72", "227"], ["74", "227"], ["78", "227"], ["80", "227"], ["82", "227"], ["4", "226"], ["6", "226"], ["8", "226"], ["14", "226"], ["14C", "226"], ["14D", "226"], ["22", "227"], ["32", "227"], ["42", "227"], ["10", "226"]]], ["Oldenzaal Oost", "Centrum", "Gasthuisstraat", [["34", "226"], ["38", "226"], ["42", "226"], ["58", "226"], ["72", "226"], ["74", "226"], ["76", "226"], ["78", "226"], ["7", "236"], ["2b", "236"], ["56", "226"], ["9", "236"], ["19", "236"], ["14F", "226"]]], ["Oldenzaal Oost", "Centrum", "Ganzenmarkt", [["8", "236"], ["10", "236"], ["14", "236"], ["16", "236"], ["22", "236"], ["24", "236"], ["26", "236"], ["28", "236"], ["34", "236"], ["36", "236"], ["38", "236"], ["40", "236"], ["39", "226"], ["31", "226"], ["27", "226"]]], ["Oldenzaal Oost", "Centrum", "Schoolstraat", [["1", "226"], ["5", "226"], ["7", "226"], ["13", "226"], ["15", "226"], ["17", "226"], ["35", "226"], ["37", "226"], ["45", "226"], ["47", "226"], ["53", "226"], ["59", "226"], ["61", "226"], ["65", "226"], ["67", "226"], ["69", "226"], ["32", "226"], ["16", "226"], ["20", "226"], ["24", "226"], ["30", "226"], ["10", "226"], ["39", "226"], ["43", "226"]]], ["Oldenzaal Oost", "Centrum", "Kloosterstraat", [["102", "249"], ["108", "249"], ["60", "249"], ["42", "249"], ["30", "249"], ["24", "249"], ["28", "249"], ["90", "249"]]], ["Oldenzaal Oost", "Centrum", "Zuidwal", [["80", "226"], ["82", "226"]]], ["Oldenzaal Oost", "Centrum", "Boterstraat", [["21", "244"], ["23", "244"], ["27", "244"], ["31", "244"], ["35", "244"], ["39", "244"], ["43", "244"], ["55", "244"]]], ["Oldenzaal Oost", "Centrum", "St. Plechelmusplein", [["15", "236"], ["13", "236"], ["9b", "236"], ["9C", "236"], ["9D", "236"], ["9A", "236"]]], ["Oldenzaal Oost", "Vierkant (Titus)", "Berkstraat", [["9", "230"], ["23", "230"], ["27", "230"], ["45", "230"], ["43", "230"], ["55", "231"]]], ["Oldenzaal Oost", "Vierkant (Titus)", "Titus Brandsmastraat", [["5", "232"], ["7", "232"], ["9", "232"], ["13", "232"], ["43", "232"], ["39", "232"], ["29", "232"], ["25", "232"], ["49", "232"], ["23", "232"], ["45", "232"], ["33", "232"]]], ["Oldenzaal Oost", "Vierkant (Titus)", "Inslagstraat", [["29", "232"], ["25", "232"], ["19", "232"], ["13", "232"], ["7", "232"], ["2", "232"], ["1", "232"], ["5", "232"]]], ["Oldenzaal Oost", "Vierkant (Titus)", "Lyceumstraat", [["10", "231"], ["18", "231"], ["24", "231"], ["46", "232"], ["52", "232"], ["54", "232"], ["26", "231"], ["44", "232"]]], ["Oldenzaal Oost", "Vierkant (Titus)", "Carmelstraat", [["39", "231"], ["41", "231"], ["43", "231"], ["31", "231"], ["18", "230"], ["16", "230"], ["10", "230"], ["8", "230"], ["2", "230"], ["12", "230"]]], ["Oldenzaal Oost", "Vierkant (Titus)", "Spoorstraat", [["12", "231"], ["18", "231"]]], ["Oldenzaal Oost", "Vierkant (Titus)", "Beukersmolen", [["37", "230"], ["53", "230"], ["67", "230"], ["79", "230"], ["5", "230"], ["7", "230"], ["26", "230"], ["38", "230"], ["40", "230"], ["34", "230"], ["1", "230"], ["69", "230"]]], ["Oldenzaal Oost", "Vierkant (Titus)", "Beukplein", [["11", "230"]]], ["Oldenzaal Oost", "Vierkant (Titus)", "Sparstraat", [["73", "231"], ["67", "231"], ["65", "231"], ["63", "231"], ["55", "231"], ["42", "232"], ["50", "232"], ["56", "232"], ["80", "232"], ["99", "231"], ["124", "232"], ["128", "232"], ["78", "232"], ["84", "232"], ["40", "232"], ["48", "232"], ["57", "231"], ["89", "231"], ["93", "231"], ["43", "231"], ["49", "231"]]], ["Oldenzaal Oost", "Vierkant (Titus)", "Eikstraat", [["7", "231"]]], ["Oldenzaal Oost", "Vierkant (Titus)", "Kastanjestraat", [["68", "230"], ["63", "230"], ["55", "230"], ["53", "230"], ["51", "230"], ["31", "230"], ["16", "230"], ["34", "230"], ["42", "230"], ["44", "230"], ["50", "230"], ["23", "230"], ["46", "230"], ["20", "230"], ["21", "230"], ["37", "230"]]], ["Oldenzaal-West", "De Essen", "Brem", [["8", "730"], ["12", "730"], ["66", "729"], ["55", "729"], ["53", "729"], ["51", "729"], ["58", "729"], ["31", "729"], ["36", "730"], ["38", "730"], ["50", "729"], ["26", "730"], ["49", "729"], ["23", "729"], ["6", "730"], ["14", "730"], ["30", "730"]]], ["Oldenzaal-West", "De Essen", "Honingklaver", [["4", "729"]]], ["Oldenzaal-West", "De Essen", "Geelster", [["66", "730"], ["46", "730"], ["40", "730"], ["39", "730"], ["38", "730"], ["17", "730"], ["16", "731"], ["1", "730"], ["108", "730"], ["106", "730"], ["96", "730"], ["82", "730"], ["4", "731"], ["32", "730"], ["90", "730"], ["104", "730"], ["110", "730"], ["9", "730"], ["13", "730"], ["41", "730"], ["51", "730"]]], ["Oldenzaal-West", "De Essen", "Look", [["2", "731"], ["10", "731"], ["27", "731"], ["39", "731"], ["63", "731"], ["51", "731"], ["55", "731"], ["93", "731"], ["89", "731"], ["75", "731"], ["99", "731"], ["73", "731"], ["18", "731"], ["103", "731"], ["107", "731"], ["113", "731"], ["115", "731"], ["117", "731"], ["119", "731"], ["19", "731"], ["45", "731"], ["69", "731"], ["81", "731"]]], ["Oldenzaal-West", "De Essen", "Ootmarsumsedijk", [["3", "729"], ["8", "729"], ["4", "729"], ["18", "729"], ["24", "729"], ["26", "729"], ["71", "729"], ["69", "729"], ["65", "729"], ["25", "729"], ["31", "729"], ["43", "729"], ["9", "729"], ["23", "729"], ["45", "729"]]], ["Oldenzaal-West", "De Essen", "Weerselosestraat", [["79", "729"], ["73", "729"]]], ["Oldenzaal-West", "De Kampjes", "Saasvelderlaan", [["97", "620"]]], ["Oldenzaal-West", "De Kampjes", "Telgenkamp", [["23", "624"], ["30", "624"], ["15", "624"], ["12", "624"], ["14", "624"], ["7", "624"], ["1", "624"], ["6", "624"], ["8", "624"], ["9", "624"], ["10", "624"], ["11", "624"], ["20", "624"], ["21", "624"], ["22", "624"], ["31", "624"]]], ["Oldenzaal-West", "De Kampjes", "Wijntjeskamp", [["25", "624"], ["1", "624"], ["20", "624"], ["11", "624"], ["10", "624"], ["9", "624"], ["8", "624"], ["6", "624"], ["15", "624"], ["16", "624"], ["18", "624"], ["2", "624"], ["3", "624"], ["21", "624"], ["22", "624"]]], ["Oldenzaal-West", "De Kampjes", "Waterhamskamp", [["28", "621"], ["27", "621"], ["8", "621"], ["7", "621"], ["12", "621"], ["10", "621"], ["15", "621"], ["17", "621"], ["21", "621"], ["22", "621"], ["26", "621"], ["25", "621"]]], ["Oldenzaal-West", "De Kampjes", "Kruijskamp", [["26", "620"], ["27", "620"], ["32", "621"], ["34", "621"], ["28", "621"], ["40", "621"], ["47", "621"], ["24", "620"], ["7", "620"], ["8", "620"], ["11", "620"], ["15", "620"], ["17", "620"], ["20", "620"], ["1", "620"], ["4", "620"], ["44", "621"], ["46", "621"], ["5", "620"], ["12", "620"], ["21", "620"], ["23", "620"], ["33", "621"], ["42", "621"]]], ["Oldenzaal-West", "De Kampjes", "Nijhuiskamp", [["44", "621"], ["7", "620"], ["17", "620"], ["16", "620"], ["15", "620"], ["14", "620"], ["8", "620"], ["13", "620"], ["12", "620"], ["1", "620"], ["3", "620"], ["4", "620"], ["28", "621"], ["30", "621"], ["32", "621"], ["35", "621"], ["40", "621"], ["10", "620"], ["31", "621"]]], ["Oldenzaal-West", "De Kampjes", "Wortkamp", [["18", "619"], ["17", "619"], ["16", "619"], ["11", "619"], ["9", "619"], ["8", "619"], ["7", "619"], ["3", "619"], ["39", "619"], ["33", "619"], ["24", "619"], ["23", "619"], ["27", "619"], ["2", "619"], ["13", "619"], ["30", "619"]]], ["Oldenzaal-West", "De Kampjes", "Hulsbekenkamp", [["50", "622"], ["23", "622"], ["25", "622"], ["26", "622"], ["31", "622"], ["34", "622"], ["38", "622"], ["43", "622"], ["29", "622"], ["19", "622"], ["18", "622"], ["16", "622"], ["15", "622"], ["8", "622"], ["1", "622"], ["24", "622"], ["36", "622"], ["41", "622"], ["56", "622"]]], ["Oldenzaal-West", "De Kampjes", "Marellenkamp", [["31", "623"], ["3", "623"], ["6", "623"], ["5", "623"], ["10", "623"], ["9", "623"], ["13", "623"], ["14", "623"], ["19", "622"], ["20", "622"], ["30", "623"], ["27", "623"], ["24", "623"], ["21", "622"], ["22", "622"], ["23", "622"], ["4", "623"], ["7", "623"]]], ["Oldenzaal-West", "De Kampjes", "Bolkskamp", [["2", "623"], ["5", "623"], ["7", "623"], ["72", "623"], ["75", "623"], ["13", "623"], ["60", "623"], ["41", "623"], ["39", "623"], ["52", "623"], ["14", "623"], ["6", "623"], ["43", "623"], ["45", "623"]]], ["Oldenzaal-West", "Sportlaan", "Sportlaan", [["1", "618"], ["2", "618"], ["6", "618"], ["5", "618"], ["7", "618"], ["22", "618"], ["10A", "618"], ["10B", "618"], ["10C", "618"], ["28", "618"], ["26", "618"], ["29", "618"], ["31", "618"], ["32", "618"], ["33", "618"], ["38", "618"], ["46", "618"], ["54", "618"], ["4", "618"], ["14", "618"], ["16", "618"], ["25", "618"], ["27", "618"], ["30", "618"], ["34", "618"], ["37", "618"], ["44", "618"], ["47", "618"]]], ["Oldenzaal-West", "Graven Es", "Alpenlaan", [["2", "716"]]], ["Oldenzaal-West", "Graven Es", "Kretalaan", [["55", "716"], ["57", "716"], ["51", "716"], ["45", "717"], ["39", "717"], ["35", "717"], ["33", "717"], ["25", "717"], ["19", "717"], ["17", "717"], ["76", "716"], ["70", "716"], ["63", "716"], ["68", "716"], ["64", "716"], ["62", "716"], ["75", "716"], ["59", "716"], ["61", "716"], ["67", "716"]]], ["Oldenzaal-West", "Graven Es", "Rhodoslaan", [["26", "717"], ["14", "717"], ["12", "717"], ["4", "717"], ["21", "717"], ["19", "717"], ["17", "717"], ["11", "717"], ["9", "717"], ["2", "717"], ["10", "717"], ["25", "717"]]], ["Oldenzaal-West", "Graven Es", "Parnonlaan", [["18", "717"], ["4", "717"], ["12", "717"], ["26", "717"]]], ["Oldenzaal-West", "Graven Es", "Corfulaan", [["1", "717"]]], ["Oldenzaal-West", "Graven Es", "Delagoslaan", [["22", "716"], ["24", "716"], ["32", "716"]]], ["Oldenzaal-West", "Graven Es", "Samoslaan", [["9", "717"], ["3", "717"], ["10", "717"], ["11", "717"]]], ["Oldenzaal-West", "Graven Es", "Kassandralaan", [["21", "716"], ["16", "717"], ["8", "717"], ["4", "717"], ["2", "717"], ["9", "716"], ["23", "716"], ["24", "717"], ["26", "717"]]], ["Oldenzaal-West", "Graven Es", "Deloslaan", [["4", "716"], ["8", "716"], ["5", "716"]]], ["Oldenzaal-West", "Graven Es", "Koslaan", [["8", "716"], ["11", "716"], ["6", "716"], ["9", "716"]]]]
+;
+const ADDR_TO_WIJK = {"TULPSTRAAT|7": "249", "TULPSTRAAT|9": "249", "TULPSTRAAT|25": "249", "TULPSTRAAT|39": "249", "TULPSTRAAT|43": "249", "TULPSTRAAT|45": "249", "TULPSTRAAT|47": "249", "TULPSTRAAT|65": "249", "TULPSTRAAT|73": "249", "NOORDWAL|12": "249", "NOORDWAL|14": "249", "NOORDWAL|16": "249", "NOORDWAL|18": "249", "NOORDWAL|98": "249", "KLOOSTERSTRAAT|24": "249", "KLOOSTERSTRAAT|28": "249", "KLOOSTERSTRAAT|30": "249", "KLOOSTERSTRAAT|42": "249", "KLOOSTERSTRAAT|60": "249", "KLOOSTERSTRAAT|90": "249", "KLOOSTERSTRAAT|102": "249", "KLOOSTERSTRAAT|108": "249", "BOTERSTRAAT|21": "244", "BOTERSTRAAT|23": "244", "BOTERSTRAAT|27": "244", "BOTERSTRAAT|31": "244", "BOTERSTRAAT|35": "244", "BOTERSTRAAT|39": "244", "BOTERSTRAAT|43": "244", "BOTERSTRAAT|55": "244", "NAGELSTRAAT|26": "244", "NAGELSTRAAT|32": "244", "NAGELSTRAAT|38": "244", "NAGELSTRAAT|42": "244", "NAGELSTRAAT|50": "244", "NAGELSTRAAT|56": "244", "DEURNINGERSTRAAT|16": "244", "DEURNINGERSTRAAT|26B": "244", "DEURNINGERSTRAAT|3401": "244", "DEURNINGERSTRAAT|3402": "244", "DEURNINGERSTRAAT|3421": "244", "DEURNINGERSTRAAT|342": "244", "DEURNINGERSTRAAT|34AP11": "244", "DEURNINGERSTRAAT|34AP12": "244", "DEURNINGERSTRAAT|34AP2": "244", "DEURNINGERSTRAAT|17": "236", "DEURNINGERSTRAAT|19": "236", "KORTESTRAAT|4": "236", "STEENSTRAAT|29": "236", "STEENSTRAAT|31": "236", "STEENSTRAAT|35": "236", "STEENSTRAAT|37": "236", "STEENSTRAAT|39": "236", "STEENSTRAAT|41": "236", "STEENSTRAAT|47": "236", "STEENSTRAAT|49": "236", "PASTORIESTRAAT|24": "236", "PASTORIESTRAAT|32": "236", "GASTHUISSTRAAT|2B": "236", "GASTHUISSTRAAT|7": "236", "GASTHUISSTRAAT|9": "236", "GASTHUISSTRAAT|19": "236", "STPLECHELMUSPLEIN|9A": "236", "STPLECHELMUSPLEIN|9B": "236", "STPLECHELMUSPLEIN|9C": "236", "STPLECHELMUSPLEIN|9D": "236", "STPLECHELMUSPLEIN|13": "236", "STPLECHELMUSPLEIN|15": "236", "GANZENMARKT|8": "236", "GANZENMARKT|10": "236", "GANZENMARKT|14": "236", "GANZENMARKT|16": "236", "GANZENMARKT|22": "236", "GANZENMARKT|24": "236", "GANZENMARKT|26": "236", "GANZENMARKT|28": "236", "GANZENMARKT|34": "236", "GANZENMARKT|36": "236", "GANZENMARKT|38": "236", "GANZENMARKT|40": "236", "GANZENMARKT|27": "226", "GANZENMARKT|31": "226", "GANZENMARKT|39": "226", "GASTHUISSTRAAT|14F": "226", "GASTHUISSTRAAT|34": "226", "GASTHUISSTRAAT|38": "226", "GASTHUISSTRAAT|42": "226", "GASTHUISSTRAAT|58": "226", "GASTHUISSTRAAT|72": "226", "GASTHUISSTRAAT|74": "226", "GASTHUISSTRAAT|76": "226", "GASTHUISSTRAAT|78": "226", "GASTHUISSTRAAT|56": "226", "PASTORIESTRAAT|46": "226", "PASTORIESTRAAT|50": "226", "ZUIDWAL|80": "226", "ZUIDWAL|82": "226", "WILHELMINASTRAAT|4": "226", "WILHELMINASTRAAT|6": "226", "WILHELMINASTRAAT|8": "226", "WILHELMINASTRAAT|14": "226", "WILHELMINASTRAAT|14C": "226", "WILHELMINASTRAAT|14D": "226", "WILHELMINASTRAAT|10": "226", "SCHOOLSTRAAT|10": "226", "SCHOOLSTRAAT|16": "226", "SCHOOLSTRAAT|20": "226", "SCHOOLSTRAAT|24": "226", "SCHOOLSTRAAT|30": "226", "SCHOOLSTRAAT|32": "226", "SCHOOLSTRAAT|1": "226", "SCHOOLSTRAAT|5": "226", "SCHOOLSTRAAT|7": "226", "SCHOOLSTRAAT|13": "226", "SCHOOLSTRAAT|15": "226", "SCHOOLSTRAAT|17": "226", "SCHOOLSTRAAT|35": "226", "SCHOOLSTRAAT|37": "226", "SCHOOLSTRAAT|43": "226", "SCHOOLSTRAAT|47": "226", "SCHOOLSTRAAT|59": "226", "SCHOOLSTRAAT|61": "226", "SCHOOLSTRAAT|65": "226", "SCHOOLSTRAAT|67": "226", "SCHOOLSTRAAT|69": "226", "SCHOOLSTRAAT|39": "226", "SCHOOLSTRAAT|45": "226", "SCHOOLSTRAAT|53": "226", "WILHELMINASTRAAT|22": "227", "WILHELMINASTRAAT|32": "227", "WILHELMINASTRAAT|34": "227", "WILHELMINASTRAAT|36": "227", "WILHELMINASTRAAT|40": "227", "WILHELMINASTRAAT|44": "227", "WILHELMINASTRAAT|50": "227", "WILHELMINASTRAAT|56": "227", "WILHELMINASTRAAT|60": "227", "WILHELMINASTRAAT|64": "227", "WILHELMINASTRAAT|68": "227", "WILHELMINASTRAAT|72": "227", "WILHELMINASTRAAT|74": "227", "WILHELMINASTRAAT|78": "227", "WILHELMINASTRAAT|80": "227", "WILHELMINASTRAAT|82": "227", "WILHELMINASTRAAT|42": "227", "BEATRIXSTRAAT|163": "227", "PRINSHENDRIKSTRAAT|39": "227", "PRINSHENDRIKSTRAAT|43": "227", "PRINSHENDRIKSTRAAT|57": "227", "PRINSHENDRIKSTRAAT|71": "227", "PRINSHENDRIKSTRAAT|79": "227", "PRINSHENDRIKSTRAAT|15": "227", "PASTORIESTRAAT|39": "227", "PASTORIESTRAAT|55": "227", "PASTORIESTRAAT|71": "227", "PASTORIESTRAAT|75": "227", "PASTORIESTRAAT|81": "227", "PASTORIESTRAAT|83": "227", "PASTORIESTRAAT|87": "227", "PASTORIESTRAAT|91": "227", "BERKSTRAAT|9": "230", "BERKSTRAAT|23": "230", "BERKSTRAAT|27": "230", "BERKSTRAAT|43": "230", "BERKSTRAAT|45": "230", "CARMELSTRAAT|2": "230", "CARMELSTRAAT|8": "230", "CARMELSTRAAT|10": "230", "CARMELSTRAAT|16": "230", "CARMELSTRAAT|18": "230", "CARMELSTRAAT|12": "230", "BEUKERSMOLEN|1": "230", "BEUKERSMOLEN|5": "230", "BEUKERSMOLEN|7": "230", "BEUKERSMOLEN|37": "230", "BEUKERSMOLEN|53": "230", "BEUKERSMOLEN|67": "230", "BEUKERSMOLEN|69": "230", "BEUKERSMOLEN|79": "230", "BEUKERSMOLEN|26": "230", "BEUKERSMOLEN|34": "230", "BEUKERSMOLEN|38": "230", "BEUKERSMOLEN|40": "230", "BEUKPLEIN|11": "230", "KASTANJESTRAAT|50": "230", "KASTANJESTRAAT|68": "230", "KASTANJESTRAAT|34": "230", "KASTANJESTRAAT|42": "230", "KASTANJESTRAAT|44": "230", "KASTANJESTRAAT|46": "230", "KASTANJESTRAAT|16": "230", "KASTANJESTRAAT|20": "230", "KASTANJESTRAAT|21": "230", "KASTANJESTRAAT|31": "230", "KASTANJESTRAAT|37": "230", "KASTANJESTRAAT|51": "230", "KASTANJESTRAAT|53": "230", "KASTANJESTRAAT|55": "230", "KASTANJESTRAAT|63": "230", "KASTANJESTRAAT|23": "230", "SPARSTRAAT|43": "231", "SPARSTRAAT|49": "231", "SPARSTRAAT|55": "231", "SPARSTRAAT|57": "231", "SPARSTRAAT|63": "231", "SPARSTRAAT|65": "231", "SPARSTRAAT|67": "231", "SPARSTRAAT|73": "231", "SPARSTRAAT|93": "231", "SPARSTRAAT|99": "231", "SPARSTRAAT|89": "231", "BERKSTRAAT|55": "231", "EIKSTRAAT|7": "231", "CARMELSTRAAT|41": "231", "CARMELSTRAAT|43": "231", "CARMELSTRAAT|31": "231", "CARMELSTRAAT|39": "231", "LYCEUMSTRAAT|10": "231", "LYCEUMSTRAAT|18": "231", "LYCEUMSTRAAT|24": "231", "LYCEUMSTRAAT|26": "231", "SPOORSTRAAT|12": "231", "SPOORSTRAAT|18": "231", "LYCEUMSTRAAT|46": "232", "LYCEUMSTRAAT|52": "232", "LYCEUMSTRAAT|54": "232", "LYCEUMSTRAAT|44": "232", "INSLAGSTRAAT|1": "232", "INSLAGSTRAAT|5": "232", "INSLAGSTRAAT|7": "232", "INSLAGSTRAAT|2": "232", "INSLAGSTRAAT|19": "232", "INSLAGSTRAAT|25": "232", "INSLAGSTRAAT|29": "232", "INSLAGSTRAAT|13": "232", "TITUSBRANDSMASTRAAT|5": "232", "TITUSBRANDSMASTRAAT|7": "232", "TITUSBRANDSMASTRAAT|9": "232", "TITUSBRANDSMASTRAAT|13": "232", "TITUSBRANDSMASTRAAT|25": "232", "TITUSBRANDSMASTRAAT|29": "232", "TITUSBRANDSMASTRAAT|33": "232", "TITUSBRANDSMASTRAAT|39": "232", "TITUSBRANDSMASTRAAT|43": "232", "TITUSBRANDSMASTRAAT|49": "232", "TITUSBRANDSMASTRAAT|23": "232", "TITUSBRANDSMASTRAAT|45": "232", "SPARSTRAAT|40": "232", "SPARSTRAAT|42": "232", "SPARSTRAAT|48": "232", "SPARSTRAAT|50": "232", "SPARSTRAAT|56": "232", "SPARSTRAAT|78": "232", "SPARSTRAAT|80": "232", "SPARSTRAAT|84": "232", "SPARSTRAAT|124": "232", "SPARSTRAAT|128": "232", "SPORTLAAN|1": "618", "SPORTLAAN|5": "618", "SPORTLAAN|7": "618", "SPORTLAAN|25": "618", "SPORTLAAN|27": "618", "SPORTLAAN|29": "618", "SPORTLAAN|31": "618", "SPORTLAAN|33": "618", "SPORTLAAN|47": "618", "SPORTLAAN|2": "618", "SPORTLAAN|6": "618", "SPORTLAAN|10A": "618", "SPORTLAAN|10B": "618", "SPORTLAAN|10C": "618", "SPORTLAAN|14": "618", "SPORTLAAN|16": "618", "SPORTLAAN|22": "618", "SPORTLAAN|26": "618", "SPORTLAAN|28": "618", "SPORTLAAN|30": "618", "SPORTLAAN|32": "618", "SPORTLAAN|34": "618", "SPORTLAAN|38": "618", "SPORTLAAN|40": "618", "SPORTLAAN|46": "618", "SPORTLAAN|54": "618", "SPORTLAAN|4": "618", "SPORTLAAN|37": "618", "SPORTLAAN|44": "618", "WORTKAMP|3": "619", "WORTKAMP|7": "619", "WORTKAMP|9": "619", "WORTKAMP|11": "619", "WORTKAMP|17": "619", "WORTKAMP|23": "619", "WORTKAMP|27": "619", "WORTKAMP|33": "619", "WORTKAMP|39": "619", "WORTKAMP|2": "619", "WORTKAMP|8": "619", "WORTKAMP|16": "619", "WORTKAMP|18": "619", "WORTKAMP|24": "619", "WORTKAMP|30": "619", "WORTKAMP|13": "619", "NIJHUISKAMP|1": "620", "NIJHUISKAMP|3": "620", "NIJHUISKAMP|7": "620", "NIJHUISKAMP|13": "620", "NIJHUISKAMP|15": "620", "NIJHUISKAMP|4": "620", "NIJHUISKAMP|8": "620", "NIJHUISKAMP|10": "620", "NIJHUISKAMP|12": "620", "NIJHUISKAMP|14": "620", "NIJHUISKAMP|16": "620", "NIJHUISKAMP|17": "620", "KRUIJSKAMP|1": "620", "KRUIJSKAMP|5": "620", "KRUIJSKAMP|7": "620", "KRUIJSKAMP|11": "620", "KRUIJSKAMP|15": "620", "KRUIJSKAMP|17": "620", "KRUIJSKAMP|21": "620", "KRUIJSKAMP|23": "620", "KRUIJSKAMP|27": "620", "KRUIJSKAMP|4": "620", "KRUIJSKAMP|8": "620", "KRUIJSKAMP|12": "620", "KRUIJSKAMP|20": "620", "KRUIJSKAMP|24": "620", "KRUIJSKAMP|26": "620", "SAASVELDERLAAN|97": "620", "NIJHUISKAMP|28": "621", "NIJHUISKAMP|30": "621", "NIJHUISKAMP|32": "621", "NIJHUISKAMP|40": "621", "NIJHUISKAMP|44": "621", "NIJHUISKAMP|31": "621", "NIJHUISKAMP|35": "621", "KRUIJSKAMP|28": "621", "KRUIJSKAMP|32": "621", "KRUIJSKAMP|34": "621", "KRUIJSKAMP|42": "621", "KRUIJSKAMP|46": "621", "KRUIJSKAMP|33": "621", "KRUIJSKAMP|40": "621", "KRUIJSKAMP|44": "621", "KRUIJSKAMP|47": "621", "WATERHAMSKAMP|7": "621", "WATERHAMSKAMP|8": "621", "WATERHAMSKAMP|10": "621", "WATERHAMSKAMP|12": "621", "WATERHAMSKAMP|15": "621", "WATERHAMSKAMP|17": "621", "WATERHAMSKAMP|25": "621", "WATERHAMSKAMP|21": "621", "WATERHAMSKAMP|27": "621", "WATERHAMSKAMP|22": "621", "WATERHAMSKAMP|26": "621", "WATERHAMSKAMP|28": "621", "HULSBEKENKAMP|1": "622", "HULSBEKENKAMP|15": "622", "HULSBEKENKAMP|19": "622", "HULSBEKENKAMP|8": "622", "HULSBEKENKAMP|16": "622", "HULSBEKENKAMP|23": "622", "HULSBEKENKAMP|25": "622", "HULSBEKENKAMP|29": "622", "HULSBEKENKAMP|24": "622", "HULSBEKENKAMP|26": "622", "HULSBEKENKAMP|34": "622", "HULSBEKENKAMP|36": "622", "HULSBEKENKAMP|38": "622", "HULSBEKENKAMP|31": "622", "HULSBEKENKAMP|41": "622", "HULSBEKENKAMP|43": "622", "HULSBEKENKAMP|44": "622", "HULSBEKENKAMP|50": "622", "HULSBEKENKAMP|56": "622", "HULSBEKENKAMP|18": "622", "MARELLENKAMP|19": "622", "MARELLENKAMP|20": "622", "MARELLENKAMP|21": "622", "MARELLENKAMP|22": "622", "MARELLENKAMP|23": "622", "MARELLENKAMP|24": "623", "MARELLENKAMP|27": "623", "MARELLENKAMP|30": "623", "MARELLENKAMP|31": "623", "MARELLENKAMP|3": "623", "MARELLENKAMP|5": "623", "MARELLENKAMP|6": "623", "MARELLENKAMP|7": "623", "MARELLENKAMP|10": "623", "MARELLENKAMP|9": "623", "MARELLENKAMP|13": "623", "MARELLENKAMP|14": "623", "MARELLENKAMP|4": "623", "BOLKSKAMP|2": "623", "BOLKSKAMP|5": "623", "BOLKSKAMP|6": "623", "BOLKSKAMP|7": "623", "BOLKSKAMP|13": "623", "BOLKSKAMP|39": "623", "BOLKSKAMP|41": "623", "BOLKSKAMP|43": "623", "BOLKSKAMP|45": "623", "BOLKSKAMP|52": "623", "BOLKSKAMP|60": "623", "BOLKSKAMP|72": "623", "BOLKSKAMP|75": "623", "BOLKSKAMP|14": "623", "TELGENKAMP|1": "624", "TELGENKAMP|7": "624", "TELGENKAMP|6": "624", "TELGENKAMP|9": "624", "TELGENKAMP|8": "624", "TELGENKAMP|10": "624", "TELGENKAMP|11": "624", "TELGENKAMP|15": "624", "TELGENKAMP|21": "624", "TELGENKAMP|12": "624", "TELGENKAMP|14": "624", "TELGENKAMP|20": "624", "TELGENKAMP|22": "624", "TELGENKAMP|23": "624", "TELGENKAMP|31": "624", "TELGENKAMP|30": "624", "WIJNTJESKAMP|1": "624", "WIJNTJESKAMP|9": "624", "WIJNTJESKAMP|11": "624", "WIJNTJESKAMP|2": "624", "WIJNTJESKAMP|6": "624", "WIJNTJESKAMP|8": "624", "WIJNTJESKAMP|10": "624", "WIJNTJESKAMP|15": "624", "WIJNTJESKAMP|21": "624", "WIJNTJESKAMP|25": "624", "WIJNTJESKAMP|16": "624", "WIJNTJESKAMP|18": "624", "WIJNTJESKAMP|20": "624", "WIJNTJESKAMP|22": "624", "WIJNTJESKAMP|3": "624", "KRETALAAN|51": "716", "KRETALAAN|55": "716", "KRETALAAN|57": "716", "KRETALAAN|59": "716", "KRETALAAN|61": "716", "KRETALAAN|63": "716", "KRETALAAN|67": "716", "KRETALAAN|75": "716", "KRETALAAN|62": "716", "KRETALAAN|64": "716", "KRETALAAN|70": "716", "KRETALAAN|74": "716", "KRETALAAN|76": "716", "KRETALAAN|68": "716", "DELAGOSLAAN|22": "716", "DELAGOSLAAN|24": "716", "DELAGOSLAAN|32": "716", "KOSLAAN|9": "716", "KOSLAAN|11": "716", "KOSLAAN|6": "716", "KOSLAAN|8": "716", "KOSLAAN|10": "716", "DELOSLAAN|4": "716", "DELOSLAAN|5": "716", "DELOSLAAN|8": "716", "KASSANDRALAAN|9": "716", "KASSANDRALAAN|21": "716", "KASSANDRALAAN|23": "716", "ALPENLAAN|2": "716", "KRETALAAN|17": "717", "KRETALAAN|19": "717", "KRETALAAN|25": "717", "KRETALAAN|35": "717", "KRETALAAN|39": "717", "KRETALAAN|45": "717", "KRETALAAN|33": "717", "RHODOSLAAN|2": "717", "RHODOSLAAN|4": "717", "RHODOSLAAN|10": "717", "RHODOSLAAN|12": "717", "RHODOSLAAN|9": "717", "RHODOSLAAN|11": "717", "RHODOSLAAN|17": "717", "RHODOSLAAN|19": "717", "RHODOSLAAN|21": "717", "RHODOSLAAN|25": "717", "RHODOSLAAN|14": "717", "RHODOSLAAN|26": "717", "PARNONLAAN|4": "717", "PARNONLAAN|12": "717", "PARNONLAAN|18": "717", "PARNONLAAN|26": "717", "CORFULAAN|1": "717", "SAMOSLAAN|3": "717", "SAMOSLAAN|9": "717", "SAMOSLAAN|11": "717", "SAMOSLAAN|10": "717", "KASSANDRALAAN|2": "717", "KASSANDRALAAN|4": "717", "KASSANDRALAAN|8": "717", "KASSANDRALAAN|16": "717", "KASSANDRALAAN|24": "717", "KASSANDRALAAN|26": "717", "BREM|49": "729", "BREM|51": "729", "BREM|53": "729", "BREM|55": "729", "BREM|23": "729", "BREM|31": "729", "BREM|58": "729", "BREM|66": "729", "BREM|50": "729", "HONINGKLAVER|4": "729", "OOTMARSUMSEDIJK|3": "729", "OOTMARSUMSEDIJK|9": "729", "OOTMARSUMSEDIJK|4": "729", "OOTMARSUMSEDIJK|8": "729", "OOTMARSUMSEDIJK|18": "729", "OOTMARSUMSEDIJK|24": "729", "OOTMARSUMSEDIJK|26": "729", "OOTMARSUMSEDIJK|23": "729", "OOTMARSUMSEDIJK|25": "729", "OOTMARSUMSEDIJK|31": "729", "OOTMARSUMSEDIJK|43": "729", "OOTMARSUMSEDIJK|45": "729", "OOTMARSUMSEDIJK|65": "729", "OOTMARSUMSEDIJK|69": "729", "OOTMARSUMSEDIJK|71": "729", "WEERSELOSESTRAAT|73": "729", "WEERSELOSESTRAAT|79": "729", "BREM|6": "730", "BREM|8": "730", "BREM|12": "730", "BREM|14": "730", "BREM|26": "730", "BREM|30": "730", "BREM|36": "730", "BREM|38": "730", "GEELSTER|32": "730", "GEELSTER|38": "730", "GEELSTER|40": "730", "GEELSTER|46": "730", "GEELSTER|66": "730", "GEELSTER|90": "730", "GEELSTER|96": "730", "GEELSTER|104": "730", "GEELSTER|106": "730", "GEELSTER|108": "730", "GEELSTER|110": "730", "GEELSTER|1": "730", "GEELSTER|9": "730", "GEELSTER|13": "730", "GEELSTER|17": "730", "GEELSTER|39": "730", "GEELSTER|41": "730", "GEELSTER|51": "730", "GEELSTER|82": "730", "GEELSTER|4": "731", "GEELSTER|16": "731", "LOOK|2": "731", "LOOK|10": "731", "LOOK|18": "731", "LOOK|19": "731", "LOOK|27": "731", "LOOK|39": "731", "LOOK|45": "731", "LOOK|51": "731", "LOOK|55": "731", "LOOK|63": "731", "LOOK|69": "731", "LOOK|73": "731", "LOOK|75": "731", "LOOK|81": "731", "LOOK|89": "731", "LOOK|93": "731", "LOOK|99": "731", "LOOK|103": "731", "LOOK|107": "731", "LOOK|113": "731", "LOOK|115": "731", "LOOK|117": "731", "LOOK|119": "731", "CARMELSTRAAT|3101": "731", "CARMELSTRAAT|": "731", "CARMELSTRAAT|TT": "731", "CARMELSTRAAT|OL": "731", "CARMELSTRAAT|316": "731", "CARMELSTRAAT|31K5": "731", "CARMELSTRAAT|31K9": "731", "CARMELSTRAAT|31K12": "731", "CARMELSTRAAT|31ST7": "731", "CARMELSTRAAT|STUDIO": "731", "CARMELSTRAAT|7": "731"}
+;
+/* ==================================================================== */
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const LS_DATA = 'kerst_data_v1';
+const LS_CHECKED = 'kerst_checked_v1';
+const LS_LOG = 'kerst_log_v1';
+
+let DATA = loadData();
+let CHECKED = loadChecked();
+let LOG = loadLog();
+let pendingReview = []; // unresolved START addresses awaiting manual wijk assignment
+
+function loadData(){
+  const raw = localStorage.getItem(LS_DATA);
+  if(raw){ try{ return JSON.parse(raw); }catch(e){} }
+  return JSON.parse(JSON.stringify(BASE_DATA));
+}
+function saveData(){ localStorage.setItem(LS_DATA, JSON.stringify(DATA)); }
+function loadChecked(){
+  const raw = localStorage.getItem(LS_CHECKED);
+  if(raw){ try{ return JSON.parse(raw); }catch(e){} }
+  return {};
+}
+function saveChecked(){ localStorage.setItem(LS_CHECKED, JSON.stringify(CHECKED)); }
+function loadLog(){
+  const raw = localStorage.getItem(LS_LOG);
+  if(raw){ try{ return JSON.parse(raw); }catch(e){} }
+  return [];
+}
+function saveLog(){ localStorage.setItem(LS_LOG, JSON.stringify(LOG.slice(-200))); }
+
+/* ---------- normalisatie (zelfde logica als de PDF-parser) ---------- */
+const STREET_ALIASES = {
+  'KORTERSTRAAT':'KORTESTRAAT',
+  'KORTESTRAAT':'KORTESTRAAT',
+  'PLECHELMUSPLEIN':'STPLECHELMUSPLEIN',
+  'STPLECHELMUSPLEIN':'STPLECHELMUSPLEIN',
+  'WILHEMINASTRAAT':'WILHELMINASTRAAT',
+};
+function normStreet(s){
+  s = s.trim().toUpperCase().replace(/\./g,'').replace(/-/g,'').replace(/\s+/g,'');
+  return STREET_ALIASES[s] || s;
+}
+function normNum(s){
+  s = s.toUpperCase().replace(/[^A-Z0-9]/g,'');
+  return s.replace('APP','AP');
+}
+function oostOrWest(wijk){
+  const n = parseInt(wijk,10);
+  return (n < 300) ? 'Oldenzaal Oost' : 'Oldenzaal-West';
+}
+
+/* ---------- straatnaam-index (voor mutatie-parsing) ---------- */
+function knownStreets(){
+  const set = new Set();
+  DATA.forEach(([area,sub,street]) => set.add(street));
+  return [...set].sort((a,b) => b.length - a.length);
+}
+
+/* ---------- render ---------- */
+function keyOf(area, sub, street, num){
+  return [area, sub||'', street, num].join('|');
+}
+function render(){
+  const content = document.getElementById('content');
+  content.innerHTML = '';
+  let curArea = null, curSub = null;
+  DATA.forEach(([area, sub, street, addrs]) => {
+    if(area !== curArea){
+      const h = document.createElement('div');
+      h.className = 'arealabel';
+      h.textContent = area;
+      content.appendChild(h);
+      curArea = area; curSub = null;
+    }
+    if(sub && sub !== curSub){
+      const h = document.createElement('div');
+      h.className = 'subarea';
+      h.textContent = sub;
+      content.appendChild(h);
+      curSub = sub;
+    } else if(!sub && curSub !== '__none__'){
+      curSub = '__none__';
+    }
+    const block = document.createElement('div');
+    block.className = 'street-block';
+    const title = document.createElement('div');
+    title.className = 'street-title';
+    title.innerHTML = street + ' <span class="count">(' + addrs.length + ')</span>';
+    block.appendChild(title);
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    addrs.slice().sort((a,b) => {
+      const na = parseInt(a[0],10) || 0, nb = parseInt(b[0],10) || 0;
+      return na - nb || a[0].localeCompare(b[0]);
+    }).forEach(([num, wijk]) => {
+      const k = keyOf(area, sub, street, num);
+      const box = document.createElement('div');
+      box.className = 'box' + (CHECKED[k] ? ' checked' : '') + (num.__new ? ' new' : '');
+      box.innerHTML = '<div class="num">' + num.replace(/\s+/g,'-') + '</div><div class="wijk">' + (wijk||'?') + '</div>';
+      box.onclick = () => {
+        CHECKED[k] = !CHECKED[k];
+        box.classList.toggle('checked');
+        saveChecked();
+      };
+      grid.appendChild(box);
+    });
+    block.appendChild(grid);
+    content.appendChild(block);
+  });
+  const total = DATA.reduce((s,e) => s + e[3].length, 0);
+  document.getElementById('statusline').textContent = total + ' adressen · ' + DATA.length + ' straten';
+}
+
+/* ---------- mutaties toepassen ---------- */
+function findEntry(street){
+  const sn = normStreet(street);
+  for(const e of DATA){
+    if(normStreet(e[2]) === sn) return e;
+  }
+  return null;
+}
+function removeAddress(street, num){
+  const sn = normStreet(street), nn = normNum(num);
+  for(const e of DATA){
+    if(normStreet(e[2]) !== sn) continue;
+    const idx = e[3].findIndex(([n]) => normNum(n) === nn);
+    if(idx >= 0){ e[3].splice(idx,1); return true; }
+  }
+  return false;
+}
+function addAddress(street, num, wijk){
+  const entry = findEntry(street);
+  const nn = normNum(num);
+  if(entry){
+    if(entry[3].some(([n]) => normNum(n) === nn)) return 'dup';
+    entry[3].push([num, wijk]);
+    return 'added';
+  }
+  // nieuwe straat: voeg toe aan juiste gebied, geen sub-wijk
+  const area = oostOrWest(wijk);
+  DATA.push([area, null, street, [[num, wijk]]]);
+  return 'added-new-street';
+}
+
+function parseMutations(text){
+  const results = [];
+  const re = /(STOP|START)\s+Abo\s+(.+?),\s*OLDENZAAL/g;
+  let m;
+  const streets = knownStreets();
+  while((m = re.exec(text)) !== null){
+    const kind = m[1];
+    let chunk = m[2].trim();
+    // laatste komma-segment gebruiken (naam ervoor negeren)
+    if(chunk.includes(',')){
+      const parts = chunk.split(',');
+      chunk = parts[parts.length - 1].trim();
+    }
+    // vind bekende straatnaam als suffix
+    let matchedStreet = null, rest = null;
+    const chunkNorm = chunk.toUpperCase();
+    for(const s of streets){
+      const sNorm = s.toUpperCase();
+      const idx = chunkNorm.indexOf(sNorm);
+      if(idx >= 0){
+        matchedStreet = s;
+        rest = chunk.slice(idx + s.length).trim();
+        break;
+      }
+    }
+    if(!matchedStreet){
+      // fallback: laatste woorden vóór het eerste cijfer = straat
+      const mm = chunk.match(/^([^\d]+?)\s*([\dA-Za-z][\dA-Za-z .()\-]*)$/);
+      if(mm){ matchedStreet = mm[1].trim(); rest = mm[2].trim(); }
+      else { continue; }
+    }
+    if(!rest) continue;
+    const numDisplay = rest.replace(/\s+/g,' ').trim();
+    results.push({kind, street: matchedStreet, num: numDisplay});
+  }
+  return results;
+}
+
+function applyMutations(muts){
+  const applied = {stopped:[], started:[], review:[]};
+  muts.forEach(({kind, street, num}) => {
+    if(kind === 'STOP'){
+      const ok = removeAddress(street, num);
+      if(ok){ applied.stopped.push(street + ' ' + num); }
+    } else {
+      const sn = normStreet(street), nn = normNum(num);
+      const wijk = ADDR_TO_WIJK[sn + '|' + nn];
+      if(wijk){
+        const res = addAddress(street, num, wijk);
+        if(res !== 'dup') applied.started.push(street + ' ' + num + ' (wijk ' + wijk + ')');
+      } else {
+        applied.review.push({street, num});
+      }
+    }
+  });
+  return applied;
+}
+
+/* ---------- UI: banners, log, review ---------- */
+function showBanner(applied){
+  const el = document.getElementById('banners');
+  const box = document.createElement('div');
+  box.className = 'banner';
+  let html = '<span class="close" onclick="this.parentElement.remove()">✕</span>';
+  html += '<h3>Looplijst verwerkt</h3><ul>';
+  html += '<li>' + applied.stopped.length + ' adres(sen) verwijderd (STOP)</li>';
+  html += '<li>' + applied.started.length + ' adres(sen) toegevoegd (START)</li>';
+  if(applied.review.length){
+    html += '<li>' + applied.review.length + ' adres(sen) niet automatisch te koppelen — zie "controleren" hieronder</li>';
+  }
+  html += '</ul>';
+  box.innerHTML = html;
+  el.prepend(box);
+}
+function pushLog(applied){
+  const ts = new Date().toLocaleString('nl-NL');
+  applied.stopped.forEach(t => LOG.push({ts, kind:'stop', text:t}));
+  applied.started.forEach(t => LOG.push({ts, kind:'start', text:t}));
+  saveLog();
+  renderLog();
+}
+function renderLog(){
+  const el = document.getElementById('log');
+  el.innerHTML = LOG.slice().reverse().map(l =>
+    '<div class="' + l.kind + '">[' + l.ts + '] ' + (l.kind === 'stop' ? '− ' : '+ ') + l.text + '</div>'
+  ).join('') || '<div>Nog geen mutaties toegepast.</div>';
+}
+function renderReview(){
+  const el = document.getElementById('review');
+  if(pendingReview.length === 0){ el.style.display = 'none'; el.innerHTML=''; return; }
+  el.style.display = 'block';
+  el.innerHTML = '<h3>Handmatig koppelen (' + pendingReview.length + ')</h3>' +
+    pendingReview.map((r,i) =>
+      '<div class="row">' + r.street + ' ' + r.num +
+      ' → wijk <input type="text" id="rw' + i + '" size="4" placeholder="bv. 226">' +
+      ' <button class="btn btn-gold" onclick="resolveReview(' + i + ')">Toevoegen</button></div>'
+    ).join('');
+}
+function resolveReview(i){
+  const r = pendingReview[i];
+  const val = document.getElementById('rw' + i).value.trim();
+  if(!val){ alert('Vul een wijknummer in.'); return; }
+  addAddress(r.street, r.num, val);
+  LOG.push({ts:new Date().toLocaleString('nl-NL'), kind:'start', text:r.street + ' ' + r.num + ' (wijk ' + val + ', handmatig)'});
+  saveLog(); renderLog();
+  pendingReview.splice(i,1);
+  renderReview();
+  saveData();
+  render();
+}
+
+/* ---------- PDF inladen ---------- */
+document.getElementById('pdfInput').addEventListener('change', async (ev) => {
+  const file = ev.target.files[0];
+  if(!file) return;
+  document.getElementById('statusline').textContent = 'PDF wordt gelezen…';
+  try{
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+    let fullText = '';
+    for(let p = 1; p <= pdf.numPages; p++){
+      const page = await pdf.getPage(p);
+      const tc = await page.getTextContent();
+      fullText += tc.items.map(it => it.str).join(' ') + ' \n ';
+    }
+    const muts = parseMutations(fullText);
+    if(muts.length === 0){
+      const b = document.getElementById('banners');
+      const box = document.createElement('div');
+      box.className = 'banner err';
+      box.innerHTML = '<span class="close" onclick="this.parentElement.remove()">✕</span><h3>Geen mutaties gevonden</h3>Er zijn geen STOP/START-regels herkend in dit PDF-bestand.';
+      b.prepend(box);
+    } else {
+      const applied = applyMutations(muts);
+      pendingReview = pendingReview.concat(applied.review);
+      saveData();
+      showBanner(applied);
+      pushLog(applied);
+      renderReview();
+      render();
+    }
+  } catch(err){
+    console.error(err);
+    const b = document.getElementById('banners');
+    const box = document.createElement('div');
+    box.className = 'banner err';
+    box.innerHTML = '<span class="close" onclick="this.parentElement.remove()">✕</span><h3>Fout bij inlezen</h3>' + err.message;
+    b.prepend(box);
+  }
+  ev.target.value = '';
+  document.getElementById('statusline').textContent =
+    DATA.reduce((s,e) => s + e[3].length, 0) + ' adressen · ' + DATA.length + ' straten';
+});
+
+document.getElementById('printBtn').addEventListener('click', () => window.print());
+document.getElementById('logBtn').addEventListener('click', () => {
+  document.getElementById('log').classList.toggle('open');
+});
+document.getElementById('resetBtn').addEventListener('click', () => {
+  if(!confirm('Alles terugzetten naar de oorspronkelijke basislijst? Handmatige mutaties en vinkjes gaan verloren.')) return;
+  DATA = JSON.parse(JSON.stringify(BASE_DATA));
+  CHECKED = {};
+  LOG = [];
+  pendingReview = [];
+  saveData(); saveChecked(); saveLog();
+  renderLog(); renderReview(); render();
+});
+
+renderLog();
+renderReview();
+render();
+</script>
+</body>
+</html>
