@@ -157,10 +157,11 @@
     body{background:#fff;}
     .wrap{max-width:none; padding:0 6mm;}
     .arealabel{page-break-before:always; margin-top:0;}
-    .wrap > .arealabel:first-of-type{page-break-before:avoid;}
+    #content > .arealabel:first-child{page-break-before:avoid;}
     .wijk-card{page-break-before:always; break-inside:avoid; box-shadow:none;}
-    .wrap > .arealabel:first-of-type + .wijk-card,
-    .wrap > .wijk-card:first-of-type{page-break-before:avoid;}
+    #content > .arealabel:first-child + .wijk-card,
+    #content > .wijk-card:first-child{page-break-before:avoid;}
+    #content > .arealabel + .wijk-card{page-break-before:avoid;}
     .street-block{break-inside:avoid;}
     .box{border:1px solid #888 !important;}
     .box.checked{background:#ddd !important;}
