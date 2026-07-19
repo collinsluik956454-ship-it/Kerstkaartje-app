@@ -177,6 +177,7 @@
   <label class="filebtn" for="pdfInput">Looplijst PDF inladen</label>
   <input type="file" id="pdfInput" accept="application/pdf">
   <button class="btn btn-outline" id="segBtn">Segmenten: aan</button>
+  <button class="btn btn-outline" id="viewBtn">Weergave: per ronde</button>
   <button class="btn btn-outline" id="logBtn">Log</button>
   <button class="btn btn-outline" id="resetBtn">Reset naar basislijst</button>
   <button class="btn btn-gold" id="printBtn">Printen</button>
@@ -259,12 +260,49 @@ function knownStreets(){
 }
 
 /* ---------- render ---------- */
-function keyOf(area, sub, street, num){
-  return [area, sub||'', street, num].join('|');
+function keyOf(street, num){
+  return normStreet(street) + '|' + normNum(num);
 }
-function render(){
-  const content = document.getElementById('content');
-  content.innerHTML = '';
+function makeBox(num, wijk, street){
+  const k = keyOf(street, num);
+  const box = document.createElement('div');
+  box.className = 'box' + (CHECKED[k] ? ' checked' : '');
+  box.innerHTML = '<div class="num">' + num.replace(/\s+/g,'-') + '</div><div class="wijk">' + (wijk||'?') + '</div>';
+  box.onclick = () => {
+    CHECKED[k] = !CHECKED[k];
+    box.classList.toggle('checked');
+    saveChecked();
+  };
+  return box;
+}
+function makeStreetBlock(street, addrs){
+  const block = document.createElement('div');
+  block.className = 'street-block';
+  const title = document.createElement('div');
+  title.className = 'street-title';
+  title.innerHTML = street + ' <span class="count">(' + addrs.length + ')</span>';
+  block.appendChild(title);
+  const grid = document.createElement('div');
+  grid.className = 'grid';
+  addrs.slice().sort((a,b) => {
+    const na = parseInt(a[0],10) || 0, nb = parseInt(b[0],10) || 0;
+    return na - nb || a[0].localeCompare(b[0]);
+  }).forEach(([num, wijk]) => grid.appendChild(makeBox(num, wijk, street)));
+  block.appendChild(grid);
+  return block;
+}
+function makeCard(labelText, labelColorGold){
+  const card = document.createElement('div');
+  card.className = 'wijk-card';
+  const h = document.createElement('div');
+  h.className = 'subarea';
+  if(labelColorGold){ h.style.background = 'var(--gold)'; h.style.color = '#2b2210'; }
+  h.textContent = labelText;
+  card.appendChild(h);
+  return card;
+}
+
+function renderByRonde(content){
   let curArea = null, curSub = undefined, card = null;
   DATA.forEach(([area, sub, street, addrs]) => {
     if(area !== curArea){
@@ -275,50 +313,60 @@ function render(){
       curArea = area; curSub = undefined; card = null;
     }
     if(sub !== curSub){
-      card = document.createElement('div');
-      card.className = 'wijk-card';
-      if(sub){
-        const h = document.createElement('div');
-        h.className = 'subarea';
-        h.textContent = sub;
-        card.appendChild(h);
-      } else {
-        const h = document.createElement('div');
-        h.className = 'subarea';
-        h.style.background = 'var(--gold)';
-        h.style.color = '#2b2210';
-        h.textContent = 'Nieuw toegevoegd';
-        card.appendChild(h);
-      }
+      card = makeCard(sub || 'Nieuw toegevoegd', !sub);
       content.appendChild(card);
       curSub = sub;
     }
-    const block = document.createElement('div');
-    block.className = 'street-block';
-    const title = document.createElement('div');
-    title.className = 'street-title';
-    title.innerHTML = street + ' <span class="count">(' + addrs.length + ')</span>';
-    block.appendChild(title);
-    const grid = document.createElement('div');
-    grid.className = 'grid';
-    addrs.slice().sort((a,b) => {
-      const na = parseInt(a[0],10) || 0, nb = parseInt(b[0],10) || 0;
-      return na - nb || a[0].localeCompare(b[0]);
-    }).forEach(([num, wijk]) => {
-      const k = keyOf(area, sub, street, num);
-      const box = document.createElement('div');
-      box.className = 'box' + (CHECKED[k] ? ' checked' : '') + (num.__new ? ' new' : '');
-      box.innerHTML = '<div class="num">' + num.replace(/\s+/g,'-') + '</div><div class="wijk">' + (wijk||'?') + '</div>';
-      box.onclick = () => {
-        CHECKED[k] = !CHECKED[k];
-        box.classList.toggle('checked');
-        saveChecked();
-      };
-      grid.appendChild(box);
-    });
-    block.appendChild(grid);
-    card.appendChild(block);
+    card.appendChild(makeStreetBlock(street, addrs));
   });
+}
+
+function groupBySegment(){
+  const wijkMap = {};
+  DATA.forEach(([area, sub, street, addrs]) => {
+    addrs.forEach(([num, wijk]) => {
+      const w = wijk || 'onbekend';
+      if(!wijkMap[w]) wijkMap[w] = {area, streets: {}};
+      if(!wijkMap[w].streets[street]) wijkMap[w].streets[street] = [];
+      wijkMap[w].streets[street].push([num, wijk]);
+    });
+  });
+  const keys = Object.keys(wijkMap).sort((a, b) => {
+    if(a === 'onbekend') return 1;
+    if(b === 'onbekend') return -1;
+    return parseInt(a, 10) - parseInt(b, 10);
+  });
+  return keys.map(w => [w, wijkMap[w]]);
+}
+
+function renderBySegment(content){
+  const segments = groupBySegment();
+  let curArea = null;
+  segments.forEach(([wijk, info]) => {
+    if(info.area !== curArea){
+      const h = document.createElement('div');
+      h.className = 'arealabel';
+      h.textContent = info.area;
+      content.appendChild(h);
+      curArea = info.area;
+    }
+    const total = Object.values(info.streets).reduce((s, a) => s + a.length, 0);
+    const label = wijk === 'onbekend' ? 'Onbekend segment' : ('WIJK ' + wijk + ' — ' + total + ' adressen');
+    const card = makeCard(label, wijk === 'onbekend');
+    content.appendChild(card);
+    Object.entries(info.streets).forEach(([street, addrs]) => {
+      card.appendChild(makeStreetBlock(street, addrs));
+    });
+  });
+}
+
+let viewMode = localStorage.getItem('kerst_viewmode_v1') || 'ronde';
+
+function render(){
+  const content = document.getElementById('content');
+  content.innerHTML = '';
+  if(viewMode === 'segment'){ renderBySegment(content); }
+  else { renderByRonde(content); }
   const total = DATA.reduce((s,e) => s + e[3].length, 0);
   document.getElementById('statusline').textContent = total + ' adressen · ' + DATA.length + ' straten';
 }
@@ -533,6 +581,14 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   saveData(); saveChecked(); saveLog();
   renderLog(); renderReview(); render();
 });
+
+document.getElementById('viewBtn').addEventListener('click', () => {
+  viewMode = (viewMode === 'ronde') ? 'segment' : 'ronde';
+  localStorage.setItem('kerst_viewmode_v1', viewMode);
+  document.getElementById('viewBtn').textContent = 'Weergave: ' + (viewMode === 'ronde' ? 'per ronde' : 'per segment');
+  render();
+});
+document.getElementById('viewBtn').textContent = 'Weergave: ' + (viewMode === 'ronde' ? 'per ronde' : 'per segment');
 
 renderLog();
 renderReview();
