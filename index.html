@@ -84,15 +84,39 @@
     font-size:1.4rem; color:var(--red); margin:26px 0 4px 0;
     border-bottom:2px solid var(--red); padding-bottom:4px;
   }
+  .wijk-card{
+    position:relative;
+    border:2px solid var(--green);
+    border-radius:4px;
+    padding:18px 16px 10px 16px;
+    margin:18px 0 22px 0;
+    background:#fffdf8;
+    box-shadow:0 1px 4px rgba(44,74,59,.08);
+  }
+  .wijk-card::before{
+    content:'';
+    position:absolute; top:0; left:0; right:0; height:5px;
+    background:repeating-linear-gradient(135deg, var(--gold) 0 8px, var(--green) 8px 16px);
+    border-radius:4px 4px 0 0;
+  }
   .subarea{
     display:inline-block; background:var(--green); color:#fff;
     font-family:Arial,sans-serif; font-size:.82rem; font-weight:600;
-    padding:5px 12px; border-radius:2px; margin:14px 0 10px 0; letter-spacing:.03em;
+    padding:5px 12px; border-radius:2px; margin:0 0 10px 0; letter-spacing:.03em;
+    position:relative; top:-27px; margin-bottom:-17px;
+    box-shadow:0 1px 3px rgba(0,0,0,.15);
   }
-  .street-block{margin-bottom:16px;}
+  .street-block{
+    margin-bottom:14px;
+    border:1px solid #cfc7b2;
+    border-radius:3px;
+    padding:10px 12px 12px 12px;
+    background:#fff;
+  }
   .street-title{
-    font-size:.95rem; color:var(--green-dark); margin:0 0 6px 2px;
+    font-size:.95rem; color:var(--green-dark); margin:0 0 8px 2px;
     font-family:Arial,sans-serif; font-weight:700;
+    display:inline-block; border-bottom:2px solid var(--gold); padding-bottom:2px;
   }
   .street-title .count{color:var(--muted); font-weight:400; font-size:.8rem;}
   .grid{
@@ -110,6 +134,7 @@
   .box.checked{background:var(--green); border-color:var(--green-dark);}
   .box.checked .num{color:#fff;}
   .box.checked .wijk{color:#cfe3d6;}
+  body.hide-wijk .box .wijk{display:none;}
   .box.new{outline:2px dashed var(--gold);}
 
   footer{
@@ -133,8 +158,9 @@
     .wrap{max-width:none; padding:0 6mm;}
     .arealabel{page-break-before:always; margin-top:0;}
     .wrap > .arealabel:first-of-type{page-break-before:avoid;}
-    .subarea{page-break-before:always;}
-    .wrap > .subarea:first-of-type, .arealabel + .subarea{page-break-before:avoid;}
+    .wijk-card{page-break-before:always; break-inside:avoid; box-shadow:none;}
+    .wrap > .arealabel:first-of-type + .wijk-card,
+    .wrap > .wijk-card:first-of-type{page-break-before:avoid;}
     .street-block{break-inside:avoid;}
     .box{border:1px solid #888 !important;}
     .box.checked{background:#ddd !important;}
@@ -150,6 +176,7 @@
   <div class="spacer"></div>
   <label class="filebtn" for="pdfInput">Looplijst PDF inladen</label>
   <input type="file" id="pdfInput" accept="application/pdf">
+  <button class="btn btn-outline" id="segBtn">Segmenten: aan</button>
   <button class="btn btn-outline" id="logBtn">Log</button>
   <button class="btn btn-outline" id="resetBtn">Reset naar basislijst</button>
   <button class="btn btn-gold" id="printBtn">Printen</button>
@@ -177,6 +204,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
 const LS_DATA = 'kerst_data_v1';
 const LS_CHECKED = 'kerst_checked_v1';
 const LS_LOG = 'kerst_log_v1';
+const LS_SEGVIS = 'kerst_segvis_v1';
 
 let DATA = loadData();
 let CHECKED = loadChecked();
@@ -237,23 +265,33 @@ function keyOf(area, sub, street, num){
 function render(){
   const content = document.getElementById('content');
   content.innerHTML = '';
-  let curArea = null, curSub = null;
+  let curArea = null, curSub = undefined, card = null;
   DATA.forEach(([area, sub, street, addrs]) => {
     if(area !== curArea){
       const h = document.createElement('div');
       h.className = 'arealabel';
       h.textContent = area;
       content.appendChild(h);
-      curArea = area; curSub = null;
+      curArea = area; curSub = undefined; card = null;
     }
-    if(sub && sub !== curSub){
-      const h = document.createElement('div');
-      h.className = 'subarea';
-      h.textContent = sub;
-      content.appendChild(h);
+    if(sub !== curSub){
+      card = document.createElement('div');
+      card.className = 'wijk-card';
+      if(sub){
+        const h = document.createElement('div');
+        h.className = 'subarea';
+        h.textContent = sub;
+        card.appendChild(h);
+      } else {
+        const h = document.createElement('div');
+        h.className = 'subarea';
+        h.style.background = 'var(--gold)';
+        h.style.color = '#2b2210';
+        h.textContent = 'Nieuw toegevoegd';
+        card.appendChild(h);
+      }
+      content.appendChild(card);
       curSub = sub;
-    } else if(!sub && curSub !== '__none__'){
-      curSub = '__none__';
     }
     const block = document.createElement('div');
     block.className = 'street-block';
@@ -279,7 +317,7 @@ function render(){
       grid.appendChild(box);
     });
     block.appendChild(grid);
-    content.appendChild(block);
+    card.appendChild(block);
   });
   const total = DATA.reduce((s,e) => s + e[3].length, 0);
   document.getElementById('statusline').textContent = total + ' adressen · ' + DATA.length + ' straten';
@@ -473,6 +511,18 @@ document.getElementById('pdfInput').addEventListener('change', async (ev) => {
 document.getElementById('printBtn').addEventListener('click', () => window.print());
 document.getElementById('logBtn').addEventListener('click', () => {
   document.getElementById('log').classList.toggle('open');
+});
+function applySegVis(visible){
+  document.body.classList.toggle('hide-wijk', !visible);
+  document.getElementById('segBtn').textContent = 'Segmenten: ' + (visible ? 'aan' : 'uit');
+}
+let segVisible = localStorage.getItem(LS_SEGVIS);
+segVisible = segVisible === null ? true : segVisible === '1';
+applySegVis(segVisible);
+document.getElementById('segBtn').addEventListener('click', () => {
+  segVisible = !segVisible;
+  localStorage.setItem(LS_SEGVIS, segVisible ? '1' : '0');
+  applySegVis(segVisible);
 });
 document.getElementById('resetBtn').addEventListener('click', () => {
   if(!confirm('Alles terugzetten naar de oorspronkelijke basislijst? Handmatige mutaties en vinkjes gaan verloren.')) return;
